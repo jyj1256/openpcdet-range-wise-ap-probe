@@ -1,0 +1,77 @@
+DATASET: 'WaymoNpzDataset'
+DATA_PATH: 'C:/waymo_detection'
+DATA_ROOT: 'C:/waymo_detection'
+INFOS_JSON: 'dataset_infos_v2_rt9_hv82_drop3_tune.json'
+WAYMO_L1_LOOKUP: 'waymo_l1_lookup.pkl'   # 평가 기준 = Waymo LEVEL_1(원본 점>5 & not hard). 2026-09-11 지시
+
+POINT_CLOUD_RANGE: [-75.2, -75.2, -2, 75.2, 75.2, 4]
+
+DATA_SPLIT: {
+    'train': train,
+    'test': val
+}
+
+LIMIT_FRAMES: {}
+SAMPLED_INTERVAL: {
+    'train': 1,
+    'test': 1
+}
+
+FILTER_EMPTY_BOXES_FOR_TRAIN: True
+
+# val/test에서 실측 점<6 박스는 박스+내부점 통째 제거 (2026-09-07)
+# 학습/검증/평가 전부 실측 점>=6 통일 (2026-09-07)
+MIN_POINTS: 6              # 라벨 필터(실측)
+DROP_BOX_MIN_PTS: 0        # 학습: 박스+내부점 제거
+DROP_BOX_MIN_PTS_EVAL: 0   # val/test는 점군 불변 — 점 부족 GT는 evaluation()에서 ignore 처리(Waymo 방식)
+
+# 강증강(uni_min6_nr와 동일)
+DATA_AUGMENTOR:
+    DISABLE_AUG_LIST: ['placeholder']
+    AUG_CONFIG_LIST:
+        - NAME: gt_sampling
+          USE_ROAD_PLANE: False
+          DB_INFO_PATH:
+              - pcdet_dbinfos_rt9_hv82_drop3_pt6_train.pkl
+          PREPARE: {
+             filter_by_min_points: ['Vehicle:5', 'Large_Vehicle:5', 'Cyclist:5'],
+          }
+          SAMPLE_GROUPS: ['Vehicle:8', 'Large_Vehicle:25', 'Cyclist:40']
+          NUM_POINT_FEATURES: 5
+          REMOVE_EXTRA_WIDTH: [0.0, 0.0, 0.0]
+          LIMIT_WHOLE_SCENE: True
+
+        - NAME: random_world_flip
+          ALONG_AXIS_LIST: ['x', 'y']
+
+        - NAME: random_world_rotation
+          WORLD_ROT_ANGLE: [-0.78539816, 0.78539816]
+
+        - NAME: random_world_scaling
+          WORLD_SCALE_RANGE: [0.9, 1.1]
+
+
+POINT_FEATURE_ENCODING: {
+    encoding_type: absolute_coordinates_encoding,
+    used_feature_list: ['x', 'y', 'z', 'intensity', 'elongation'],
+    src_feature_list: ['x', 'y', 'z', 'intensity', 'elongation'],
+}
+
+
+DATA_PROCESSOR:
+    - NAME: mask_points_and_boxes_outside_range
+      REMOVE_OUTSIDE_BOXES: True
+
+    - NAME: shuffle_points
+      SHUFFLE_ENABLED: {
+        'train': True,
+        'test': True
+      }
+
+    - NAME: transform_points_to_voxels
+      VOXEL_SIZE: [0.1, 0.1, 0.15]
+      MAX_POINTS_PER_VOXEL: 5
+      MAX_NUMBER_OF_VOXELS: {
+        'train': 150000,
+        'test': 150000
+      }

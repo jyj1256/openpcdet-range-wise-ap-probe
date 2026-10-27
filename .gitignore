@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.pth
+*.pt
+*.pkl
+*.npz
+*.log
+results/
+predictions/
+.venv/
+.idea/
+.vscode/

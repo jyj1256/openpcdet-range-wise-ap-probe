@@ -1,0 +1,35 @@
+OpenPCDet probe restoration — static check
+
+No training or checkpoint inference was run.
+
+PASS: Python bytecode compilation
+  - outputs/code/pcdet_nearrange_probe.py
+  - outputs/code/run_probe_top3.py
+
+PASS: run_probe_top3.py CLI parser/help
+
+PASS: AST argument contracts
+  probe: --cfg, --ckpt, --infos, --ranges, --ious, --eval_min_points,
+         --no_ignore, --score_thresh, --eval_score_thresh, --save_preds
+  runner: --cfg, --out, --infos, --ranges, --ious, --eval_min_points,
+          --no_ignore, --topn, --save_tag, --score_thresh,
+          --eval_score_thresh
+
+PASS: source contract
+  - raw prediction PKL is saved before evaluation filtering
+  - inference and evaluation score thresholds are separate
+  - dataset evaluation receives range, IoU, min-points and ignore policy
+  - output includes per-class AP and mAP with 전체/30m/20m/10m support
+  - runner forwards all probe options and propagates subprocess failures
+  - best.pth fallback supports prediction saving and both thresholds
+  - local Windows paths were replaced by CLI options/environment variables
+  - probe help works without importing torch/OpenPCDet
+
+GitHub sharing files:
+  - README.md: scope, dependencies, dataset contract, commands and caveats
+  - LICENSE: MIT
+  - .gitignore: checkpoints, predictions, caches and local artifacts
+
+Reference:
+  C:/Users/pc/Desktop/share_drop3_88_9/code/run_probe_top3.py
+  C:/Users/pc/Desktop/share_drop3_88_9/results/drop3_probe_TOP3.txt
